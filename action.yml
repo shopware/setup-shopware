@@ -24,6 +24,7 @@ runs:
         php-version: ${{ inputs.php-version }}
     
     - name: Start MySQL
+      shell: bash
       run: |
         sudo rm -rf /var/lib/mysql
         sudo mkdir /var/lib/mysql
@@ -32,10 +33,12 @@ runs:
         sudo systemctl start mysql
 
     - name: Setup Shopware Environment Variables
+      shell: bash
       run: |
         echo "APP_ENV=test" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
     
     - name: Install dependencies
+      shell: bash
       run: composer install
