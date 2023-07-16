@@ -1,0 +1,41 @@
+name: 'Setup Shopware'
+description: 'Install Shopware'
+inputs:
+  shopware-version:
+    description: 'Shopware Version to use'
+    required: true
+    default: 'v6.5.3.2'
+  php-version:
+    description: 'PHP Version to use'
+    required: true
+    default: '8.1'
+runs:
+  using: "composite"
+  steps:
+    - name: Clone Shopware
+      uses: actions/checkout@v3
+      with:
+        repository: "shopware/platform"
+        ref: ${{ inputs.shopware-version }}
+        
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+    
+    - name: Start MySQL
+      run: |
+        sudo rm -rf /var/lib/mysql
+        sudo mkdir /var/lib/mysql
+        sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
+        sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
+        sudo systemctl start mysql
+
+    - name: Setup Shopware Environment Variables
+      run: |
+        echo "APP_ENV=test" >> "$GITHUB_ENV"
+        echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
+        echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
+    
+    - name: Install dependencies
+      run: composer install
