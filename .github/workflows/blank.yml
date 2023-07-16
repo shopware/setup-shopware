@@ -10,6 +10,7 @@ jobs:
       - name: Create Flex Project
         run: |
                 touch .env
+                mkdir -p custom/plugins custom/static-plugins
                 cat > composer.json << EOF
                   {
                     "name": "shopware/production",
