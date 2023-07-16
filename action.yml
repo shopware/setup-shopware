@@ -9,6 +9,10 @@ inputs:
     description: 'PHP Version to use'
     required: true
     default: '8.1'
+  php-extensions:
+    description: "PHP extensions to install'
+    required: true
+    default: 'pcov'
 runs:
   using: "composite"
   steps:
@@ -26,6 +30,7 @@ runs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ inputs.php-version }}
+        extensions: ${{ inputs.php-extensions }}
     
     - name: Start MySQL
       shell: bash
