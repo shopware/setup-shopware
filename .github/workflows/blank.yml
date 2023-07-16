@@ -7,77 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Flex Project
-        run: |
-                touch .env
-                mkdir -p custom/plugins custom/static-plugins
-                cat > composer.json << EOF
-                  {
-                    "name": "shopware/production",
-                    "license": "MIT",
-                    "type": "project",
-                    "require": {
-                        "composer-runtime-api": "^2.0",
-                        "shopware/administration": "~6.5.0",
-                        "shopware/core": "~6.5.0",
-                        "shopware/elasticsearch": "~6.5.0",
-                        "shopware/storefront": "~6.5.0",
-                        "symfony/flex": "~2",
-                        "symfony/runtime": "^5.0|^6.0"
-                    },
-                    "repositories": [
-                        {
-                            "type": "path",
-                            "url": "custom/plugins/*",
-                            "options": {
-                                "symlink": true
-                            }
-                        },
-                        {
-                            "type": "path",
-                            "url": "custom/plugins/*/packages/*",
-                            "options": {
-                                "symlink": true
-                            }
-                        },
-                        {
-                            "type": "path",
-                            "url": "custom/static-plugins/*",
-                            "options": {
-                                "symlink": true
-                            }
-                        }
-                    ],
-                    "prefer-stable": true,
-                    "config": {
-                        "allow-plugins": {
-                            "symfony/flex": true,
-                            "symfony/runtime": true
-                        },
-                        "optimize-autoloader": true,
-                        "sort-packages": true
-                    },
-                    "scripts": {
-                        "auto-scripts": [
-                        ],
-                        "post-install-cmd": [
-                            "@auto-scripts"
-                        ],
-                        "post-update-cmd": [
-                            "@auto-scripts"
-                        ]
-                    },
-                    "extra": {
-                        "symfony": {
-                            "allow-contrib": true,
-                            "endpoint": [
-                                "https://raw.githubusercontent.com/shopware/recipes/flex/main/index.json",
-                                "flex://defaults"
-                            ]
-                        }
-                    }
-                }
-                EOF
+      - name: Clone Shopware
+        uses: actions/checkout@v3
+        with:
+          repository: "shopware/platform"
           
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -100,4 +33,7 @@ jobs:
       
       - name: Install dependencies
         run: composer install
-
+          
+      - name: Run tests
+        run: |
+          ./vendor/bin/phpunit --testsuite unit
