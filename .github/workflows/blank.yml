@@ -15,6 +15,7 @@ jobs:
       - name: Start MySQL
         run: |
           sudo rm -rf /var/lib/mysql
+          sudo mkdir /var/lib/mysql
           sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
           
       - name: Run tests
