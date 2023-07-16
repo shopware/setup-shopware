@@ -1,0 +1,22 @@
+name: CI
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Shopware
+        uses: actions/checkout@v3
+        with:
+          repository: "shopware/platform"
+      
+      - name: Start MySQL
+        run: |
+          sudo rm -rf /var/lib/mysql
+          sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
+          
+      - name: Run tests
+        run: |
+          ./vendor/bin/phpunit --testsuite unit
