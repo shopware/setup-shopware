@@ -30,18 +30,22 @@ runs:
     - name: Start MySQL
       shell: bash
       run: |
+        echo "::group::Start MySQL"
         sudo rm -rf /var/lib/mysql
         sudo mkdir /var/lib/mysql
         sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
         sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
         sudo systemctl start mysql
+        echo "::endgroup::"
 
     - name: Setup Shopware Environment Variables
       shell: bash
       run: |
+        echo "::group::Setup Environment Variables"
         echo "APP_ENV=test" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
+        echo "::endgroup::"
 
     - name: Get Composer Cache Directory
       shell: bash
@@ -59,4 +63,7 @@ runs:
     
     - name: Install dependencies
       shell: bash
-      run: composer install
+      run: |
+        echo "::group::Install Composer Dependencies"
+        composer install
+        echo "::endgroup::"
