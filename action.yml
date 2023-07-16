@@ -10,7 +10,7 @@ inputs:
     required: true
     default: '8.1'
   php-extensions:
-    description: "PHP extensions to install'
+    description: 'PHP extensions to install'
     required: true
     default: 'pcov'
 runs:
