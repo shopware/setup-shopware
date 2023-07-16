@@ -30,7 +30,7 @@ runs:
     - name: Start MySQL
       shell: bash
       run: |
-        sudo rm -rf /var/lib/mysql
+        sudo mv /var/lib/mysql /var/lib/mysql-old
         sudo mkdir /var/lib/mysql
         sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
         sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
