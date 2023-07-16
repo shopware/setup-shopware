@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v3
+        with:
+          path: /tmp/action
 
       - name: Setup Shopware
-        uses: ./.
+        uses: /tmp/action/.
