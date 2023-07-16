@@ -19,6 +19,7 @@ runs:
         ref: ${{ inputs.shopware-version }}
 
     - name: Remove vendor-bin
+      shell: bash
       run: rm -rf vendor-bin
         
     - name: Setup PHP
@@ -43,12 +44,13 @@ runs:
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
 
     - name: Get Composer Cache Directory
+      shell: bash
       id: composer-cache
       run: |
         echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v3
-      name: Cache Composer packages
+    - name: Cache Composer packages
+      uses: actions/cache@v3
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.shopware-version }}
