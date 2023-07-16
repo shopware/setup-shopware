@@ -30,40 +30,27 @@ runs:
     - name: Start MySQL
       shell: bash
       run: |
-        echo "::group::Start MySQL"
         sudo rm -rf /var/lib/mysql
         sudo mkdir /var/lib/mysql
         sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
         sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
         sudo systemctl start mysql
-        echo "::endgroup::"
 
     - name: Setup Shopware Environment Variables
       shell: bash
       run: |
-        echo "::group::Setup Environment Variables"
         echo "APP_ENV=test" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
-        echo "::endgroup::"
 
-    - name: Get Composer Cache Directory
-      shell: bash
-      id: composer-cache
-      run: |
-        echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-    - name: Cache Composer packages
+    - name: Retrieve the cached "vendor" directory (if present)
       uses: actions/cache@v3
+      id: composer-cache
       with:
-        path: ${{ steps.composer-cache.outputs.dir }}
-        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.shopware-version }}
-        restore-keys: |
-          ${{ runner.os }}-composer-
+        path: vendor
+        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.shopware-version }}-${{ inputs.php-version }}
     
     - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: |
-        echo "::group::Install Composer Dependencies"
-        composer install
-        echo "::endgroup::"
+      run: composer install
