@@ -17,6 +17,9 @@ runs:
       with:
         repository: "shopware/platform"
         ref: ${{ inputs.shopware-version }}
+
+    - name: Remove vendor-bin
+      run: rm -rf vendor-bin
         
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -38,6 +41,19 @@ runs:
         echo "APP_ENV=test" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
+
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      run: |
+        echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - uses: actions/cache@v3
+      name: Cache Composer packages
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.shopware-version }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
     
     - name: Install dependencies
       shell: bash
