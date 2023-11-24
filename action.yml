@@ -23,7 +23,7 @@ runs:
     - name: Clone Shopware
       uses: actions/checkout@v3
       with:
-        repository: "shopware/platform"
+        repository: "shopware/shopware"
         ref: ${{ inputs.shopware-version }}
 
     - name: Remove vendor-bin
