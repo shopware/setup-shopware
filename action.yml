@@ -5,6 +5,10 @@ branding:
   color: 'blue'
   icon: 'download'
 inputs:
+  env:
+    description: 'Environment for Shopware'
+    required: true
+    default: 'test'
   shopware-version:
     description: 'Shopware Version to use'
     required: true
@@ -17,11 +21,23 @@ inputs:
     description: 'PHP extensions to install'
     required: true
     default: 'pcov'
+  install:
+    description: 'Install Shopware'
+    required: true
+    default: 'false'
+  install-locale:
+    description: 'Locale to install'
+    required: true
+    default: 'en-GB'
+  install-currency:
+    description: 'Currency to install'
+    required: true
+    default: 'EUR'
 runs:
   using: "composite"
   steps:
     - name: Clone Shopware
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: "shopware/shopware"
         ref: ${{ inputs.shopware-version }}
@@ -48,7 +64,7 @@ runs:
     - name: Setup Shopware Environment Variables
       shell: bash
       run: |
-        echo "APP_ENV=test" >> "$GITHUB_ENV"
+        echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
 
@@ -63,3 +79,8 @@ runs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       shell: bash
       run: composer install
+
+    - name: Install Shopware
+      if: inputs.install == 'true'
+      shell: bash
+      run: bin/console system:install --create-database --drop-database --basic-setup --force --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
