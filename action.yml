@@ -34,7 +34,7 @@ inputs:
     required: true
     default: 'EUR'
   keep-composer-tools:
-    description: 'Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)
+    description: 'Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)'
     required: true
     default: 'false'
 runs:
