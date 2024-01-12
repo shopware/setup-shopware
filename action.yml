@@ -70,6 +70,7 @@ runs:
       shell: bash
       run: |
         echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
+        echo "APP_SECRET=secret" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
 
