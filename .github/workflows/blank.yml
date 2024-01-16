@@ -19,4 +19,5 @@ jobs:
         uses: FriendsOfShopware/setup-shopware@main
         with:
           mysql-version: ${{ matrix.mysql }}
+          install: 'true'
 
