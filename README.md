@@ -13,6 +13,7 @@ Setup Shopware in your GitHub Actions pipeline to run tests.
 - `install` (default: `false`) - Whether to install Shopware or not. If set to `false`, the action will only install PHP, MySQL, Composer packages.
 - `install-locale` (default: `en-GB`) - The locale to install Shopware with.
 - `install-currency` (default: `EUR`) - The currency to install Shopware with.
+- `mysql-version` (default: `builtin` - Uses by default the bundled MySQL version of GitHub Actions this is MySQL 8) - Specify any docker image to use instead like `mariadb:11` or `mysql:5.7`.
 
 ```yaml
 - name: Setup Shopware

@@ -16,11 +16,11 @@ inputs:
   php-version:
     description: 'PHP Version to use'
     required: true
-    default: '8.1'
+    default: '8.2'
   php-extensions:
     description: 'PHP extensions to install'
     required: true
-    default: 'pcov'
+    default: ''
   install:
     description: 'Install Shopware'
     required: true
@@ -37,6 +37,10 @@ inputs:
     description: 'Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)'
     required: true
     default: 'false'
+  mysql-version:
+    description: 'MySQL Version to use'
+    required: true
+    default: 'builtin'
 runs:
   using: "composite"
   steps:
@@ -58,7 +62,8 @@ runs:
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
     
-    - name: Start MySQL
+    - name: Start Default MySQL
+      if: inputs.mysql-version == 'default'
       shell: bash
       run: |
         sudo mv /var/lib/mysql /var/lib/mysql-old
@@ -66,6 +71,33 @@ runs:
         sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
         sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
         sudo systemctl start mysql
+
+    - name: Start External MySQL
+      if: inputs.mysql-version != 'default'
+      shell: bash
+      run: |
+        docker run \
+          --name mysql \
+          -p 3306:3306 \
+          -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
+          -e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=yes \
+          --tmpfs /var/lib/mysql:rw,size=1G \
+          -d \
+          ${{ inputs.mysql-version }}
+
+    - name: Wait for MySQL
+      if: inputs.mysql-version != 'default'
+      shell: bash
+      run: |
+        if docker exec mysql mariadb -v; then
+          while ! docker exec mysql mariadb-admin ping -h localhost --silent; do
+            sleep 1
+          done
+        else
+          while ! docker exec mysql mysqladmin ping -h localhost --silent; do
+            sleep 1
+          done
+        fi
 
     - name: Setup Shopware Environment Variables
       shell: bash

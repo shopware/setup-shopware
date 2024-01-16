@@ -7,7 +7,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mysql:
+          - builtin
+          - mysql:8.1
+          - mariadb:11
     steps:
       - name: Setup Shopware
         uses: FriendsOfShopware/setup-shopware@main
+        with:
+          mysql-version: ${{ matrix.mysql }}
 
