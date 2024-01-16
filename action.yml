@@ -108,7 +108,7 @@ runs:
         echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
         echo "APP_SECRET=secret" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
-        echo "DATABASE_URL=mysql://root@localhost/shopware" >> "$GITHUB_ENV"
+        echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
 
     - name: Retrieve the cached "vendor" directory (if present)
       uses: actions/cache@v3
