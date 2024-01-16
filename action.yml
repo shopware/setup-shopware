@@ -56,6 +56,7 @@ runs:
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
+        tools: symfony-cli
     
     - name: Start MySQL
       shell: bash
@@ -90,3 +91,8 @@ runs:
       if: inputs.install == 'true'
       shell: bash
       run: bin/console system:install --create-database --drop-database --basic-setup --force --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
+
+    - name: Start Webserver
+      if: inputs.install == 'true' && inputs.env == 'e2e'
+      shell: bash
+      run: symfony server:start -d
