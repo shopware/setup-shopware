@@ -1,6 +1,6 @@
 name: 'Setup Shopware'
 description: 'Install Shopware with specific versions in your CI'
-author: 'FriendsOfShopware'
+author: 'shopware AG'
 branding:
   color: 'blue'
   icon: 'download'

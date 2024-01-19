@@ -16,7 +16,7 @@ jobs:
           - mariadb:11
     steps:
       - name: Setup Shopware
-        uses: FriendsOfShopware/setup-shopware@main
+        uses: shopware/setup-shopware@main
         with:
           mysql-version: ${{ matrix.mysql }}
           install: 'true'

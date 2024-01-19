@@ -17,7 +17,7 @@ Setup Shopware in your GitHub Actions pipeline to run tests.
 
 ```yaml
 - name: Setup Shopware
-  uses: FriendsOfShopware/setup-shopware@v1
+  uses: shopware/setup-shopware@v1
   with:
     shopware-version: v6.5.3.2
     php-version: 8.1
@@ -31,7 +31,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Setup Shopware
-              uses: FriendsOfShopware/setup-shopware@v1
+              uses: shopware/setup-shopware@v1
               with:
                 shopware-version: '6.5.7.3'
                 php-version: 8.1
