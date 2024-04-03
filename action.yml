@@ -73,7 +73,7 @@ runs:
         sudo systemctl start mysql
 
     - name: Start External MySQL
-      if: inputs.mysql-version != 'builtin'
+      if: inputs.mysql-version != 'builtin' && inputs.mysql-version != 'skip'
       shell: bash
       run: |
         docker run \
@@ -84,6 +84,11 @@ runs:
           --tmpfs /var/lib/mysql:rw,size=1G \
           -d \
           ${{ inputs.mysql-version }}
+
+    - name: Configure MySQL Client
+      if: inputs.mysql-version != 'builtin'
+      shell: bash
+      run: |
         echo "[client]" > $HOME/.my.cnf
         echo "host=127.0.0.1" > $HOME/.my.cnf
         echo "user=root" > $HOME/.my.cnf
