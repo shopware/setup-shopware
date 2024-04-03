@@ -94,7 +94,7 @@ runs:
         echo "user=root" > $HOME/.my.cnf
 
     - name: Wait for MySQL
-      if: inputs.mysql-version != 'builtin'
+      if: inputs.mysql-version != 'builtin' && inputs.mysql-version != 'skip'
       shell: bash
       run: |
         if docker exec mysql mariadb --version; then
