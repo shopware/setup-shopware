@@ -116,7 +116,7 @@ runs:
         echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
 
     - name: Retrieve the cached "vendor" directory (if present)
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: composer-cache
       with:
         path: vendor
