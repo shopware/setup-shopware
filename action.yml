@@ -119,7 +119,9 @@ runs:
       uses: actions/cache@v4
       id: composer-cache
       with:
-        path: vendor
+        path: |
+          vendor
+          composer.lock
         key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.shopware-version }}-${{ inputs.php-version }}
     
     - name: Install dependencies
