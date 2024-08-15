@@ -41,19 +41,12 @@ inputs:
     description: "MySQL Version to use"
     required: true
     default: "builtin"
-
   node-version:
     description: nodejs version to use
     required: false
     default: "20.x"
-
   installAdmin:
     description: Whether to install administration npm dependencies and prepare jest
-    required: false
-    default: ""
-
-  installStorefront:
-    description: Whether to install storefront npm dependencies
     required: false
     default: ""
 runs:
@@ -100,27 +93,50 @@ runs:
           -d \
           ${{ inputs.mysql-version }}
 
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      if: ${{ inputs.installAdmin && inputs.installStorefrontDeps }}
+    - name: Retrieve the cached "vendor" directory (if present)
+      uses: actions/cache@v4
+      id: composer-cache
       with:
-        node-version: ${{ inputs.node-version }}
+        path: |
+          vendor
+          composer.lock
+        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}
 
-    # TODO: add caching
-    - name: Install admin deps
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: composer install
+
+    - uses: actions/setup-node@v4
+      if: inputs.installAdmin
+      with:
+        node-version: 20
+
+    - name: Retrieve the cached "node_modules" directory (if present)
+      uses: actions/cache@v4
+      if: inputs.installAdmin
+      id: node-cache
+      with:
+        path: src/Administration/Resources/app/administration/node_modules
+        key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
+
+    - name: Install dependencies (if the cached directory was not found)
+      if: inputs.installAdmin && steps.node-cache.outputs.cache-hit != 'true'
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      shell: bash
+      run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
+
+    - name: Prepare Jest environment
       if: ${{ inputs.installAdmin }}
       shell: bash
       working-directory: src/Administration/Resources/app/administration
-      run: npm ci --no-audit --no-fund --prefer-offline
+      run: npm run unit-setup
 
-    # TODO: install deps for all bundles (bin/ci bundle:dump -> foreach bundle in var/plugins.json)
-    - name: Install extension admin deps
+    - name: Entity schema
       if: ${{ inputs.installAdmin }}
       shell: bash
-      run: |
-        if [[ -r "custom/plugins/${{ inputs.extensionName }}/src/Resources/app/administration/package.json" ]]; then
-          (cd "custom/plugins/${{ inputs.extensionName }}/src/Resources/app/administration/" && npm ci --no-audit --no-fund --prefer-offline)
-        fi
+      run: composer admin:generate-entity-schema-types
 
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
@@ -151,20 +167,6 @@ runs:
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
-
-    - name: Retrieve the cached "vendor" directory (if present)
-      uses: actions/cache@v4
-      id: composer-cache
-      with:
-        path: |
-          vendor
-          composer.lock
-        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}
-
-    - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: composer install
 
     - name: Install Shopware
       if: inputs.install == 'true'
