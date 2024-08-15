@@ -1,46 +1,61 @@
-name: 'Setup Shopware'
-description: 'Install Shopware with specific versions in your CI'
-author: 'shopware AG'
+name: "Setup Shopware"
+description: "Install Shopware with specific versions in your CI"
+author: "shopware AG"
 branding:
-  color: 'blue'
-  icon: 'download'
+  color: "blue"
+  icon: "download"
 inputs:
   env:
-    description: 'Environment for Shopware'
+    description: "Environment for Shopware"
     required: true
-    default: 'test'
+    default: "test"
   shopware-version:
-    description: 'Shopware Version to use'
+    description: "Shopware Version to use"
     required: true
-    default: 'v6.5.7.4'
+    default: "v6.5.7.4"
   php-version:
-    description: 'PHP Version to use'
+    description: "PHP Version to use"
     required: true
-    default: '8.2'
+    default: "8.2"
   php-extensions:
-    description: 'PHP extensions to install'
+    description: "PHP extensions to install"
     required: true
-    default: ''
+    default: ""
   install:
-    description: 'Install Shopware'
+    description: "Install Shopware"
     required: true
-    default: 'false'
+    default: "false"
   install-locale:
-    description: 'Locale to install'
+    description: "Locale to install"
     required: true
-    default: 'en-GB'
+    default: "en-GB"
   install-currency:
-    description: 'Currency to install'
+    description: "Currency to install"
     required: true
-    default: 'EUR'
+    default: "EUR"
   keep-composer-tools:
-    description: 'Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)'
+    description: "Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)"
     required: true
-    default: 'false'
+    default: "false"
   mysql-version:
-    description: 'MySQL Version to use'
+    description: "MySQL Version to use"
     required: true
-    default: 'builtin'
+    default: "builtin"
+
+  node-version:
+    description: nodejs version to use
+    required: false
+    default: "20.x"
+
+  installAdmin:
+    description: Whether to install administration npm dependencies and prepare jest
+    required: false
+    default: ""
+
+  installStorefront:
+    description: Whether to install storefront npm dependencies
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -54,14 +69,14 @@ runs:
       if: inputs.keep-composer-tools == 'false'
       shell: bash
       run: rm -rf vendor-bin
-        
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
-    
+
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin'
       shell: bash
@@ -84,6 +99,28 @@ runs:
           --tmpfs /var/lib/mysql:rw,size=1G \
           -d \
           ${{ inputs.mysql-version }}
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      if: ${{ inputs.installAdmin && inputs.installStorefrontDeps }}
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    # TODO: add caching
+    - name: Install admin deps
+      if: ${{ inputs.installAdmin }}
+      shell: bash
+      working-directory: src/Administration/Resources/app/administration
+      run: npm ci --no-audit --no-fund --prefer-offline
+
+    # TODO: install deps for all bundles (bin/ci bundle:dump -> foreach bundle in var/plugins.json)
+    - name: Install extension admin deps
+      if: ${{ inputs.installAdmin }}
+      shell: bash
+      run: |
+        if [[ -r "custom/plugins/${{ inputs.extensionName }}/src/Resources/app/administration/package.json" ]]; then
+          (cd "custom/plugins/${{ inputs.extensionName }}/src/Resources/app/administration/" && npm ci --no-audit --no-fund --prefer-offline)
+        fi
 
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
@@ -123,7 +160,7 @@ runs:
           vendor
           composer.lock
         key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}
-    
+
     - name: Install dependencies
       if: steps.composer-cache.outputs.cache-hit != 'true'
       shell: bash
