@@ -49,6 +49,10 @@ inputs:
     description: Whether to install administration npm dependencies and prepare jest
     required: false
     default: ""
+  installStorefront:
+    description: Whether to install storefront npm dependencies
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -108,9 +112,24 @@ runs:
       run: composer install
 
     - uses: actions/setup-node@v4
-      if: inputs.installAdmin
+      if: inputs.installStorefront || inputs.installAdmin
       with:
         node-version: 20
+
+    - name: Retrieve the cached "node_modules" directory (if present)
+      uses: actions/cache@v4
+      if: inputs.installStorefront
+      id: node-cache
+      with:
+        path: src/Administration/Resources/app/administration/node_modules
+        key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
+
+    - name: Install dependencies (if the cached directory was not found)
+      if: inputs.installStorefront && steps.node-cache.outputs.cache-hit != 'true'
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      shell: bash
+      run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
