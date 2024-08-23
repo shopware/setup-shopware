@@ -53,6 +53,7 @@ inputs:
     description: Whether to install storefront npm dependencies
     required: false
     default: ""
+
 runs:
   using: "composite"
   steps:
@@ -109,7 +110,7 @@ runs:
     - name: Install dependencies
       if: steps.composer-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: composer install
+      run: composer install -o
 
     - uses: actions/setup-node@v4
       if: inputs.installStorefront || inputs.installAdmin
@@ -119,13 +120,13 @@ runs:
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
       if: inputs.installStorefront
-      id: node-cache
+      id: admin-node-cache
       with:
         path: src/Administration/Resources/app/administration/node_modules
         key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.installStorefront && steps.node-cache.outputs.cache-hit != 'true'
+      if: inputs.installStorefront && steps.admin-node-cache.outputs.cache-hit != 'true'
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
@@ -134,13 +135,13 @@ runs:
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
       if: inputs.installAdmin
-      id: node-cache
+      id: storefront-node-cache
       with:
         path: src/Administration/Resources/app/administration/node_modules
         key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.installAdmin && steps.node-cache.outputs.cache-hit != 'true'
+      if: inputs.installAdmin && steps.storefront-node-cache.outputs.cache-hit != 'true'
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
