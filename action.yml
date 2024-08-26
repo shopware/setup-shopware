@@ -108,8 +108,9 @@ runs:
       with:
         path: |
           vendor
+          vendor-bin
           composer.lock
-        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}
+        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}-${{ inputs.keep-composer-tools && 'with-tools' || '' }}
 
     - name: Install dependencies
       if: steps.composer-cache.outputs.cache-hit != 'true'
