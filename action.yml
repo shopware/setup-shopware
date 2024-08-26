@@ -13,6 +13,10 @@ inputs:
     description: "Shopware Version to use"
     required: true
     default: "v6.5.7.4"
+  shopware-repository:
+    description: The shopware repository to checkout
+    required: true
+    default: shopware/shopware
   php-version:
     description: "PHP Version to use"
     required: true
@@ -60,7 +64,7 @@ runs:
     - name: Clone Shopware
       uses: actions/checkout@v4
       with:
-        repository: "shopware/shopware"
+        repository: ${{ inputs.shopware-repository }}
         ref: ${{ inputs.shopware-version }}
 
     - name: Remove vendor-bin
