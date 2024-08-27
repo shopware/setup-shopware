@@ -1,67 +1,84 @@
-name: 'Setup Shopware'
-description: 'Install Shopware with specific versions in your CI'
-author: 'shopware AG'
+name: "Setup Shopware"
+description: "Install Shopware with specific versions in your CI"
+author: "shopware AG"
 branding:
-  color: 'blue'
-  icon: 'download'
+  color: "blue"
+  icon: "download"
 inputs:
   env:
-    description: 'Environment for Shopware'
+    description: "Environment for Shopware"
     required: true
-    default: 'test'
+    default: "test"
   shopware-version:
-    description: 'Shopware Version to use'
+    description: "Shopware Version to use"
     required: true
-    default: 'v6.5.7.4'
+    default: "v6.5.7.4"
+  shopware-repository:
+    description: The shopware repository to checkout
+    required: true
+    default: shopware/shopware
   php-version:
-    description: 'PHP Version to use'
+    description: "PHP Version to use"
     required: true
-    default: '8.2'
+    default: "8.2"
   php-extensions:
-    description: 'PHP extensions to install'
+    description: "PHP extensions to install"
     required: true
-    default: ''
+    default: ""
   install:
-    description: 'Install Shopware'
+    description: "Install Shopware"
     required: true
-    default: 'false'
+    default: "false"
   install-locale:
-    description: 'Locale to install'
+    description: "Locale to install"
     required: true
-    default: 'en-GB'
+    default: "en-GB"
   install-currency:
-    description: 'Currency to install'
+    description: "Currency to install"
     required: true
-    default: 'EUR'
+    default: "EUR"
   keep-composer-tools:
-    description: 'Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)'
+    description: "Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)"
     required: true
-    default: 'false'
+    default: "false"
   mysql-version:
-    description: 'MySQL Version to use'
+    description: "MySQL Version to use"
     required: true
-    default: 'builtin'
+    default: "builtin"
+  node-version:
+    description: nodejs version to use
+    required: false
+    default: "20.x"
+  installAdmin:
+    description: Whether to install administration npm dependencies and prepare jest
+    required: false
+    default: ""
+  installStorefront:
+    description: Whether to install storefront npm dependencies
+    required: false
+    default: ""
+
 runs:
   using: "composite"
   steps:
     - name: Clone Shopware
       uses: actions/checkout@v4
       with:
-        repository: "shopware/shopware"
+        repository: ${{ inputs.shopware-repository }}
         ref: ${{ inputs.shopware-version }}
 
     - name: Remove vendor-bin
       if: inputs.keep-composer-tools == 'false'
       shell: bash
       run: rm -rf vendor-bin
-        
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
-    
+
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin'
       shell: bash
@@ -84,6 +101,67 @@ runs:
           --tmpfs /var/lib/mysql:rw,size=1G \
           -d \
           ${{ inputs.mysql-version }}
+
+    - name: Retrieve the cached "vendor" directory (if present)
+      uses: actions/cache@v4
+      id: composer-cache
+      with:
+        path: |
+          vendor
+          vendor-bin
+          composer.lock
+        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}-${{ inputs.keep-composer-tools && 'with-tools' || '' }}
+
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: composer install -o
+
+    - uses: actions/setup-node@v4
+      if: inputs.installStorefront || inputs.installAdmin
+      with:
+        node-version: 20
+
+    - name: Retrieve the cached "node_modules" directory (if present)
+      uses: actions/cache@v4
+      if: inputs.installStorefront
+      id: storefront-node-cache
+      with:
+        path: src/Storefront/Resources/app/storefront/node_modules
+        key: storefront-node-modules-${{ runner.os }}-${{ hashFiles('src/Storefront/Resources/app/storefront/package-lock.json') }}
+
+    - name: Install dependencies (if the cached directory was not found)
+      if: inputs.installStorefront && steps.storefront-node-cache.outputs.cache-hit != 'true'
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      shell: bash
+      run: npm --prefix src/Storefront/Resources/app/storefront ci --no-audit --prefer-offline
+
+    - name: Retrieve the cached "node_modules" directory (if present)
+      uses: actions/cache@v4
+      if: inputs.installAdmin
+      id: admin-node-cache
+      with:
+        path: src/Administration/Resources/app/administration/node_modules
+        key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
+
+    - name: Install dependencies (if the cached directory was not found)
+      if: inputs.installAdmin && steps.admin-node-cache.outputs.cache-hit != 'true'
+      env:
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      shell: bash
+      run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
+
+    - name: Prepare Jest environment
+      if: ${{ inputs.installAdmin }}
+      shell: bash
+      working-directory: src/Administration/Resources/app/administration
+      run: npm run unit-setup
+
+    - name: Entity schema
+      if: ${{ inputs.installAdmin }}
+      shell: bash
+      run: composer admin:generate-entity-schema-types
 
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
@@ -114,20 +192,6 @@ runs:
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
         echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
-
-    - name: Retrieve the cached "vendor" directory (if present)
-      uses: actions/cache@v4
-      id: composer-cache
-      with:
-        path: |
-          vendor
-          composer.lock
-        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('**/composer.json') }}
-    
-    - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: composer install
 
     - name: Install Shopware
       if: inputs.install == 'true'
