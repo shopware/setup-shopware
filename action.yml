@@ -113,7 +113,6 @@ runs:
         key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}-${{ inputs.keep-composer-tools && 'with-tools' || '' }}
 
     - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
       shell: bash
       run: composer install -o
 
