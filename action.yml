@@ -102,20 +102,9 @@ runs:
           -d \
           ${{ inputs.mysql-version }}
 
-    - name: Retrieve the cached "vendor" directory (if present)
-      uses: actions/cache@v4
-      id: composer-cache
+    - uses: "ramsey/composer-install@v3"
       with:
-        path: |
-          vendor
-          vendor-bin
-          composer.lock
-        key: ${{ runner.os }}-shopware-setup-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}-${{ inputs.keep-composer-tools && 'with-tools' || '' }}
-
-    - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      shell: bash
-      run: composer install -o
+        custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
 
     - uses: actions/setup-node@v4
       if: inputs.installStorefront || inputs.installAdmin
