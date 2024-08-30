@@ -41,6 +41,10 @@ inputs:
     description: "Keep Shopware Composer tools (PHPStan, ECS, BC-Checker)"
     required: true
     default: "false"
+  composer-options:
+    description: "Additional composer options"
+    required: false
+    default: ""
   mysql-version:
     description: "MySQL Version to use"
     required: true
@@ -105,6 +109,7 @@ runs:
     - uses: "ramsey/composer-install@v3"
       with:
         custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
+        composer-options: ${{ inputs.composer-options }}
 
     - uses: actions/setup-node@v4
       if: inputs.installStorefront || inputs.installAdmin
