@@ -57,6 +57,10 @@ inputs:
     description: Whether to install storefront npm dependencies
     required: false
     default: ""
+  path:
+    description: Relative path under $GITHUB_WORKSPACE to place the shopware repository
+    required: true
+    default: ""
 
 runs:
   using: "composite"
@@ -66,10 +70,12 @@ runs:
       with:
         repository: ${{ inputs.shopware-repository }}
         ref: ${{ inputs.shopware-version }}
+        path: ${{ inputs.path }}
 
     - name: Remove vendor-bin
       if: inputs.keep-composer-tools == 'false'
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: rm -rf vendor-bin
 
     - name: Setup PHP
@@ -105,6 +111,7 @@ runs:
     - uses: "ramsey/composer-install@v3"
       with:
         custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
+        working-directory: ${{ inputs.path }}
 
     - uses: actions/setup-node@v4
       if: inputs.installStorefront || inputs.installAdmin
@@ -116,11 +123,12 @@ runs:
       if: inputs.installStorefront
       id: storefront-node-cache
       with:
-        path: src/Storefront/Resources/app/storefront/node_modules
-        key: storefront-node-modules-${{ runner.os }}-${{ hashFiles('src/Storefront/Resources/app/storefront/package-lock.json') }}
+        path: ${{ inputs.path || '.' }}/src/Storefront/Resources/app/storefront/node_modules
+        key: storefront-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Storefront/Resources/app/storefront/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
       if: inputs.installStorefront && steps.storefront-node-cache.outputs.cache-hit != 'true'
+      working-directory: ${{ inputs.path }}
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
@@ -131,26 +139,30 @@ runs:
       if: inputs.installAdmin
       id: admin-node-cache
       with:
-        path: src/Administration/Resources/app/administration/node_modules
-        key: admin-node-modules-${{ runner.os }}-${{ hashFiles('src/Administration/Resources/app/administration/package-lock.json') }}
+        path: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration/node_modules
+        key: admin-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Administration/Resources/app/administration/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
       if: inputs.installAdmin && steps.admin-node-cache.outputs.cache-hit != 'true'
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
 
     - name: Prepare Jest environment
       if: ${{ inputs.installAdmin }}
       shell: bash
-      working-directory: src/Administration/Resources/app/administration
+      working-directory: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration
       run: npm run unit-setup
 
     - name: Entity schema
       if: ${{ inputs.installAdmin }}
       shell: bash
-      run: composer admin:generate-entity-schema-types
+      working-directory: ${{ inputs.path || '.' }}
+      run: |
+        composer run framework:schema:dump
+        composer run npm:admin run convert-entity-schema
 
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
@@ -176,6 +188,7 @@ runs:
 
     - name: Setup Shopware Environment Variables
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: |
         echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
@@ -185,9 +198,11 @@ runs:
     - name: Install Shopware
       if: inputs.install == 'true'
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: bin/console system:install --create-database --drop-database --basic-setup --force --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
     - name: Start Webserver
       if: inputs.install == 'true' && inputs.env == 'e2e'
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: symfony server:start -d
