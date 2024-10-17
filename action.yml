@@ -193,16 +193,44 @@ runs:
         echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
+
+    - name: Setup Shopware Database URL
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
         echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
+      if: ${{ env.DATABASE_URL == '' }} # Don't override if already set
+
+    - name: Configure HMAC JWT
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        yq -n '.shopware.api.jwt_key.use_app_secret = true' | tee config/packages/zz-shopware.yaml
+      # if: ${{ steps.version.outputs.shopware-major-version > 5 }} # TODO: Add support for this in the shopware-version action
 
     - name: Install Shopware
       if: inputs.install == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: bin/console system:install --create-database --drop-database --basic-setup --force --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
+      run: |
+        composer run init:db -- --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
-    - name: Start Webserver
-      if: inputs.install == 'true' && inputs.env == 'e2e'
+    - name: Build JS
+      if: inputs.installAdmin == 'true' || inputs.installStorefront == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: symfony server:start -d
+      run: |
+        composer run build:js
+        bin/console assets:install --env="${{ inputs.env }}"
+
+    - name: Assign default Storefront theme to all sales channels
+      if: inputs.installStorefront == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: bin/console theme:change --sync --all Storefront
+
+    - name: Start Webserver
+      if: inputs.install == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: symfony server:start -d --no-tls --allow-http --port=8000
