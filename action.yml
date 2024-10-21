@@ -206,7 +206,7 @@ runs:
       working-directory: ${{ inputs.path }}
       run: |
         yq -n '.shopware.api.jwt_key.use_app_secret = true' | tee config/packages/zz-shopware.yaml
-      # if: ${{ steps.version.outputs.shopware-major-version > 5 }} # TODO: Add support for this in the shopware-version action
+      if: ${{ hashFiles('src/Core/Framework/Api/OAuth/JWTConfigurationFactory.php') != '' }}
 
     - name: Install Shopware
       if: inputs.install == 'true'
