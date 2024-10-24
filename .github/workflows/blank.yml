@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches: [ "main" ]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -15,29 +16,38 @@ jobs:
           - mysql:8.1
           - mariadb:11
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: ./.
         with:
           mysql-version: ${{ matrix.mysql }}
           install: 'true'
+          path: 'sw-test'
 
   only-storefront:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: ./.
         with:
           install: 'true'
           installStorefront: 'true'
+          path: 'sw-test'
 
   only-admin:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: ./.
         with:
           install: 'true'
           installAdmin: 'true'
+          path: 'sw-test'
 
 
 
