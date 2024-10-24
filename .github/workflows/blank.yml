@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  mysql-variation:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,4 +20,24 @@ jobs:
         with:
           mysql-version: ${{ matrix.mysql }}
           install: 'true'
+
+  only-storefront:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Shopware
+        uses: shopware/setup-shopware@main
+        with:
+          install: 'true'
+          installStorefront: 'true'
+
+  only-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Shopware
+        uses: shopware/setup-shopware@main
+        with:
+          install: 'true'
+          installAdmin: 'true'
+
+
 
