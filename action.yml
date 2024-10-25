@@ -53,11 +53,11 @@ inputs:
     description: nodejs version to use
     required: false
     default: "20.x"
-  installAdmin:
+  install-admin:
     description: Whether to install administration npm dependencies and prepare jest
     required: false
     default: ""
-  installStorefront:
+  install-storefront:
     description: Whether to install storefront npm dependencies
     required: false
     default: ""
@@ -128,20 +128,20 @@ runs:
         working-directory: ${{ inputs.path }}
 
     - uses: actions/setup-node@v4
-      if: inputs.installStorefront || inputs.installAdmin
+      if: inputs.install-storefront || inputs.install-admin
       with:
-        node-version: 20
+        node-version: ${{ inputs.node-version }}
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
-      if: inputs.installStorefront
+      if: inputs.install-storefront
       id: storefront-node-cache
       with:
         path: ${{ inputs.path || '.' }}/src/Storefront/Resources/app/storefront/node_modules
         key: storefront-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Storefront/Resources/app/storefront/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.installStorefront && steps.storefront-node-cache.outputs.cache-hit != 'true'
+      if: inputs.install-storefront && steps.storefront-node-cache.outputs.cache-hit != 'true'
       working-directory: ${{ inputs.path }}
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
@@ -150,14 +150,14 @@ runs:
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
-      if: inputs.installAdmin
+      if: inputs.install-admin
       id: admin-node-cache
       with:
         path: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration/node_modules
         key: admin-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Administration/Resources/app/administration/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.installAdmin && steps.admin-node-cache.outputs.cache-hit != 'true'
+      if: inputs.install-admin && steps.admin-node-cache.outputs.cache-hit != 'true'
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
@@ -165,13 +165,13 @@ runs:
       run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
 
     - name: Prepare Jest environment
-      if: ${{ inputs.installAdmin }}
+      if: ${{ inputs.install-admin }}
       shell: bash
       working-directory: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration
       run: npm run unit-setup
 
     - name: Entity schema
-      if: ${{ inputs.installAdmin }}
+      if: ${{ inputs.install-admin }}
       shell: bash
       working-directory: ${{ inputs.path || '.' }}
       run: |
@@ -229,19 +229,31 @@ runs:
       run: |
         composer run init:db -- --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
-    - name: Build JS
-      if: inputs.installAdmin == 'true' || inputs.installStorefront == 'true'
+    - name: Build JS Admin
+      if: inputs.install-admin == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        composer run build:js
-        bin/console assets:install --env="${{ inputs.env }}"
+        composer run build:js:admin
+        bin/console assets:install
 
-    - name: Assign default Storefront theme to all sales channels
-      if: inputs.installStorefront == 'true'
+    - name: Build JS Storefront
+      if: inputs.install-storefront == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: bin/console theme:change --sync --all Storefront
+      run: |
+        composer run build:js:storefront
+
+    - name: Assign default Storefront theme to all sales channels
+      if: inputs.install-storefront == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: | 
+        if bin/console theme:change --help | grep -q '--sync'; then
+          bin/console theme:change --sync --all Storefront
+        else
+          bin/console theme:change --all Storefront
+        fi
 
     - name: Start Webserver
       if: inputs.install == 'true'
