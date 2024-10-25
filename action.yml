@@ -227,7 +227,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        composer run init:db -- --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
+        composer run init:db -- --create-database --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
     - name: Build JS
       if: inputs.installAdmin == 'true' || inputs.installStorefront == 'true'
