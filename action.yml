@@ -220,7 +220,7 @@ runs:
       working-directory: ${{ inputs.path }}
       run: |
         yq -n '.shopware.api.jwt_key.use_app_secret = true' | tee config/packages/zz-shopware.yaml
-      if: ${{ hashFiles(format('{0}/src/Core/Framework/Api/OAuth/JWTConfigurationFactory.php', inputs.path)) != '' }}
+      if: ${{ hashFiles(format('{0}/src/Core/Framework/Api/OAuth/JWTConfigurationFactory.php', (inputs.path || '.' ))) != '' }}
 
     - name: Install Shopware
       if: inputs.install == 'true'
