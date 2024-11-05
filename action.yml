@@ -236,6 +236,31 @@ runs:
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
 
+    - name: Setup Shopware Database URL
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
+      if: ${{ env.DATABASE_URL == '' }} # Don't override if already set
+
+    - name: Setup redis for new cache-rework behaviour
+      shell: bash
+      run: |
+        cat <<EOF | tee config/packages/zy-shopware.yaml
+        shopware:
+          redis:
+            connections:
+              ephemeral:
+                dsn: '%env(REDIS_URL)%'
+          cache:
+            invalidation:
+              delay: 1
+              delay_options:
+                storage: redis
+                connection: 'ephemeral'
+        EOF
+      if: ${{ env.V6_7_0_0 == '1' && env.REDIS_URL != '' }}
+
     - name: Configure HMAC JWT
       shell: bash
       working-directory: ${{ inputs.path }}
