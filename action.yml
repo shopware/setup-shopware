@@ -255,8 +255,33 @@ runs:
           bin/console theme:change --all Storefront
         fi
 
+    - name: Set permissions for symfony dev server
+      if: inputs.install == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        if [ "$(id -u)" != "0" ]; then
+          echo "Not running as root ✅ Skipping permissions override."
+          exit 0
+        fi
+        
+        if id www-data; then
+          chown -R www-data:www-data .
+        elif id apache; then
+          chown -R apache:apache .
+        elif id http; then
+          chown -R http:http .
+        elif id www; then
+          chown -R www:www .
+        elif id _www; then
+          chown -R _www:_www .
+        else
+          echo "No known webserver user found ⚠️"
+        fi
+
     - name: Start Webserver
       if: inputs.install == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: symfony server:start -d --no-tls --allow-http --port=8000
+      run: |
+        symfony server:start -d --no-tls --allow-http --port=8000
