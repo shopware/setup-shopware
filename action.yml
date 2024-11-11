@@ -178,13 +178,41 @@ runs:
         composer run framework:schema:dump
         composer run npm:admin run convert-entity-schema
 
+    - name: Setup Shopware Database URL
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
+      if: ${{ env.DATABASE_URL == '' }} # Don't override if already set
+
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
-      shell: bash
-      run: |
-        echo "[client]" > $HOME/.my.cnf
-        echo "host=127.0.0.1" > $HOME/.my.cnf
-        echo "user=root" > $HOME/.my.cnf
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const os = require('os');
+
+          const uri = process.env.DATABASE_URL;
+          const regex = /^mysql:\/\/(?<user>[^:]+)(:(?<password>[^@]+))?@(?<host>[^:\/]+)(:(?<port>\d+))?(\/(?<database>[^\?]+))?/;
+          const match = uri.match(regex);
+
+          if (!match || !match.groups) {
+              console.error("DATABASE_URL is invalid!");
+              process.exit(1);
+          }
+
+          const { user, password, host, port, database } = match.groups;
+          const myFileContent = [
+            "[client]",
+            `host=${host}`,
+            `user=${user}`,
+            password ? `password=${password}` : null,
+            port ? `port=${port}` : null,
+            database ? `database=${database}` : null,
+          ].filter(Boolean).join("\n");
+
+          fs.writeFileSync(`${os.homedir()}/.my.cnf`, myFileContent);
 
     - name: Wait for MySQL
       if: inputs.mysql-version != 'builtin' && inputs.mysql-version != 'skip'
@@ -207,13 +235,6 @@ runs:
         echo "APP_ENV=${{ inputs.env }}" >> "$GITHUB_ENV"
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
-
-    - name: Setup Shopware Database URL
-      shell: bash
-      working-directory: ${{ inputs.path }}
-      run: |
-        echo "DATABASE_URL=mysql://root@127.0.0.1/shopware" >> "$GITHUB_ENV"
-      if: ${{ env.DATABASE_URL == '' }} # Don't override if already set
 
     - name: Configure HMAC JWT
       shell: bash
@@ -248,7 +269,7 @@ runs:
       if: inputs.install-storefront == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: | 
+      run: |
         if bin/console theme:change --help | grep -q '--sync'; then
           bin/console theme:change --sync --all Storefront
         else
