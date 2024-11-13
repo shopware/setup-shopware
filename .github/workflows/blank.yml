@@ -49,5 +49,23 @@ jobs:
           installAdmin: 'true'
           path: 'sw-test'
 
-
-
+  version-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - 'trunk'
+          - 'v6.6.4.0'
+          - 'v6.6.8.2'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Shopware
+        uses: ./.
+        with:
+          shopware-version: '${{ matrix.version }}'
+          path: 'sw-test'
+      - name: Show version
+        working-directory: sw-test
+        run: ./bin/console --version
