@@ -110,6 +110,14 @@ runs:
             mv composer.json.tmp composer.json
         fi
 
+    - name: Runner setup
+      shell: bash
+      run: |
+        if [[ ${RUNS_ON_AMI_NAME} =~ ^runs-on-.*-ubuntu[0-9]+-.*$ ]]; then
+          echo 'runner=github' >> "${GITHUB_ENV}"
+          echo "ImageOS=$(echo "${RUNS_ON_AMI_NAME}" | grep -E -oh "ubuntu[0-9]+")" >> "${GITHUB_ENV}"
+        fi
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -157,7 +165,7 @@ runs:
         npm install -g npm@${{ inputs.npm-version }}
 
     - name: Retrieve the cached "node_modules" directory (if present)
-      uses: actions/cache@v4
+      uses: runs-on/cache@v4
       if: inputs.install-storefront
       id: storefront-node-cache
       with:
@@ -173,7 +181,7 @@ runs:
       run: npm --prefix src/Storefront/Resources/app/storefront ci --no-audit --prefer-offline
 
     - name: Retrieve the cached "node_modules" directory (if present)
-      uses: actions/cache@v4
+      uses: runs-on/cache@v4
       if: inputs.install-admin
       id: admin-node-cache
       with:
