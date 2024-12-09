@@ -12,7 +12,7 @@ inputs:
   shopware-version:
     description: "Shopware Version to use"
     required: true
-    default: "v6.5.7.4"
+    default: "v6.6.8.0"
   shopware-repository:
     description: The shopware repository to checkout
     required: true
@@ -20,11 +20,11 @@ inputs:
   php-version:
     description: "PHP Version to use"
     required: true
-    default: "8.2"
+    default: "8.3"
   php-extensions:
     description: "PHP extensions to install"
     required: true
-    default: ""
+    default: "gd, xml, dom, curl, pdo, mysqli, mbstring, pdo_mysql, bcmath, pcov, zip"
   composer-root-version:
     description: "The COMPOSER_ROOT_VERSION that should be set"
     required: false
@@ -280,7 +280,6 @@ runs:
       working-directory: ${{ inputs.path }}
       run: |
         composer run build:js:admin
-        bin/console assets:install
 
     - name: Build JS Storefront
       if: inputs.install-storefront == 'true'
@@ -289,12 +288,19 @@ runs:
       run: |
         composer run build:js:storefront
 
+    - name: Copy assets
+      if: inputs.install-storefront == 'true' || inputs.install-admin == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+          bin/console assets:install
+
     - name: Assign default Storefront theme to all sales channels
       if: inputs.install-storefront == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        if bin/console theme:change --help | grep -q '--sync'; then
+        if bin/console theme:change --help | egrep -q '^\s+--sync'; then
           bin/console theme:change --sync --all Storefront
         else
           bin/console theme:change --all Storefront
