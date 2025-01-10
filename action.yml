@@ -73,6 +73,7 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: runs-on/action@v1
     - name: Clone Shopware
       uses: actions/checkout@v4
       with:
@@ -293,7 +294,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-          bin/console assets:install
+        bin/console assets:install
 
     - name: Assign default Storefront theme to all sales channels
       if: inputs.install-storefront == 'true'
