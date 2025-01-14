@@ -119,7 +119,7 @@ runs:
         tools: symfony-cli
 
     - name: Start Default MySQL
-      if: inputs.mysql-version == 'builtin'
+      if: inputs.mysql-version == 'builtin' && !github.event.act
       shell: bash
       run: |
         sudo mv /var/lib/mysql /var/lib/mysql-old
