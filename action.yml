@@ -112,7 +112,7 @@ runs:
         fi
 
     - name: Setup PHP
-      uses: pweyck/setup-php@v2
+      uses: pweyck/setup-php@main
       env:
         RUNNER: github
         ImageOS: ubuntu
