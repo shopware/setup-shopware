@@ -117,7 +117,7 @@ runs:
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
-        key: ${{ env.key }}
+        key: cache-v1
 
     - name: Cache extensions
       uses: actions/cache@v4
