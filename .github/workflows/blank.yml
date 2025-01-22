@@ -56,6 +56,7 @@ jobs:
       matrix:
         version:
           - 'trunk'
+          - 'v6.6.0.3'
           - 'v6.6.4.0'
           - 'v6.6.8.2'
     steps:
