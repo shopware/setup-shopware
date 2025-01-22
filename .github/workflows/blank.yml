@@ -59,6 +59,7 @@ jobs:
           - 'v6.6.0.3'
           - 'v6.6.4.0'
           - 'v6.6.8.2'
+          - 'v6.5.8.15'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -67,6 +68,7 @@ jobs:
         with:
           shopware-version: '${{ matrix.version }}'
           path: 'sw-test'
+          install: 'true'
       - name: Show version
         working-directory: sw-test
         run: ./bin/console --version
