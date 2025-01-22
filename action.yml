@@ -261,13 +261,6 @@ runs:
         echo "APP_SECRET=def00000bb5acb32b54ff8ee130270586eec0e878f7337dc7a837acc31d3ff00f93a56b595448b4b29664847dd51991b3314ff65aeeeb761a133b0ec0e070433bff08e48" >> "$GITHUB_ENV"
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
 
-    - name: Configure HMAC JWT
-      shell: bash
-      working-directory: ${{ inputs.path }}
-      run: |
-        yq -n '.shopware.api.jwt_key.use_app_secret = true' | tee config/packages/zz-shopware.yaml
-      if: ${{ hashFiles(format('{0}/src/Core/Maintenance/System/Service/JwtCertificateGenerator.php', (inputs.path || '.' ))) != '' }}
-
     - name: Install Shopware
       if: inputs.install == 'true'
       shell: bash
