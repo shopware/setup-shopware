@@ -112,7 +112,7 @@ runs:
         fi
 
     - name: Setup PHP
-      uses: shopware/setup-php@act-like-official-runners
+      uses: shopware/setup-php@main
       env:
         RUNNER: github
         ImageOS: ubuntu
