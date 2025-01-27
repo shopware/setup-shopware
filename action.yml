@@ -112,7 +112,11 @@ runs:
         fi
 
     - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+      uses: shopware/setup-php@main
+      env:
+        RUNNER: github
+        ImageOS: ubuntu
+        GITHUB_EMULATION: "true"
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
