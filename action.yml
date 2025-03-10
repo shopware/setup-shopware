@@ -17,6 +17,10 @@ inputs:
     description: The shopware repository to checkout
     required: true
     default: shopware/shopware
+  shopware-github-token:
+    description: Token used for checking out the shopware repository
+    required: true
+    default: ${{ github.token }}
   php-version:
     description: "PHP Version to use"
     required: true
@@ -80,6 +84,7 @@ runs:
         repository: ${{ inputs.shopware-repository }}
         ref: ${{ inputs.shopware-version }}
         path: ${{ inputs.path }}
+        token: ${{ inputs.shopware-github-token }}
 
     - name: Set COMPOSER_ROOT_VERSION
       shell: bash
