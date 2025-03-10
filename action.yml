@@ -20,7 +20,7 @@ inputs:
   shopware-github-token:
     description: Token used for checking out the shopware repository
     required: true
-    default: ${{ secrets.token }}
+    default: ${{ github.token }}
   php-version:
     description: "PHP Version to use"
     required: true
