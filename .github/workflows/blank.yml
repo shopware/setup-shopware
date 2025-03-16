@@ -60,6 +60,7 @@ jobs:
           - 'v6.6.4.0'
           - 'v6.6.8.2'
           - 'v6.5.8.15'
+          - 'v6.5.8.9'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
