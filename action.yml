@@ -12,7 +12,7 @@ inputs:
   shopware-version:
     description: "Shopware Version to use"
     required: true
-    default: "v6.6.8.0"
+    default: "v6.6.10.3"
   shopware-repository:
     description: The shopware repository to checkout
     required: true
@@ -105,20 +105,6 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: rm -rf vendor-bin
-
-    - name: Fix temporary PHPStan Failure
-      shell: bash
-      working-directory: ${{ inputs.path }}
-      run: |
-        if ! jq -e '.["require-dev"]["phpstan/phpdoc-parser"]' composer.json > /dev/null 2>&1; then
-            echo "phpstan/phpdoc-parser not found in require-dev, adding it..."
-
-            # Create a temporary file with the new content
-            jq '.["require-dev"]["phpstan/phpdoc-parser"] = "~1"' composer.json > composer.json.tmp
-
-            # Replace the original file
-            mv composer.json.tmp composer.json
-        fi
 
     - name: Setup PHP
       uses: shopware/setup-php@main
