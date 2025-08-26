@@ -289,7 +289,7 @@ runs:
         bin/console assets:install
 
     - name: Assign default Storefront theme to all sales channels
-      if: inputs.install-storefront == 'true'
+      if: inputs.install == 'true' && inputs.install-storefront == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
