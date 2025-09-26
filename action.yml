@@ -29,6 +29,10 @@ inputs:
     description: "PHP extensions to install"
     required: true
     default: "gd, xml, dom, curl, pdo, mysqli, mbstring, pdo_mysql, bcmath, pcov, zip"
+  php-fake-version:
+    description: "Fake the version for composer"
+    required: false
+    default: ""
   composer-root-version:
     description: "The COMPOSER_ROOT_VERSION that should be set"
     required: false
@@ -85,6 +89,12 @@ runs:
         ref: ${{ inputs.shopware-version }}
         path: ${{ inputs.path }}
         token: ${{ inputs.shopware-github-token }}
+    - name: Fake php version for composer
+      if: ${{ inputs.php-fake-version != '' }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      run: |
+        composer config platform.php "${{ inputs.php-fake-version }}"  
 
     - name: Set COMPOSER_ROOT_VERSION
       shell: bash
