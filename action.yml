@@ -90,8 +90,9 @@ runs:
         path: ${{ inputs.path }}
         token: ${{ inputs.shopware-github-token }}
     - name: Fake php version for composer
-      if: ${{ inputs.php-fake-version != "" }}
+      if: ${{ inputs.php-fake-version != '' }}
       working-directory: ${{ inputs.path }}
+      shell: bash
       run: |
         composer config platform.php "${{ inputs.php-fake-version }}"  
 
