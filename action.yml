@@ -73,6 +73,10 @@ inputs:
     description: Whether to install storefront npm dependencies
     required: false
     default: ""
+  skip-js-build:
+    description: Whether to skip the js build step. By default this is controlled by install-storefront and install-admin
+    required: false
+    default: "false"
   path:
     description: Relative path under $GITHUB_WORKSPACE to place the shopware repository
     required: true
@@ -90,7 +94,7 @@ runs:
         path: ${{ inputs.path }}
         token: ${{ inputs.shopware-github-token }}
     - name: Fake php version for composer
-      if: ${{ inputs.php-fake-version != '' }}
+      if: ${{ inputs.php-fake-version && inputs.php-fake-version != '' }}
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
@@ -278,21 +282,21 @@ runs:
         composer run init:db -- --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
     - name: Build JS Admin
-      if: inputs.install-admin == 'true'
+      if: inputs.install-admin == 'true' && inputs.skip-js-build != 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         composer run build:js:admin
 
     - name: Build JS Storefront
-      if: inputs.install-storefront == 'true'
+      if: inputs.install-storefront == 'true' && inputs.skip-js-build != 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         composer run build:js:storefront
 
     - name: Copy assets
-      if: inputs.install-storefront == 'true' || inputs.install-admin == 'true'
+      if: inputs.install-storefront == 'true' && inputs.install-admin == 'true'
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
