@@ -81,6 +81,10 @@ inputs:
     description: Relative path under $GITHUB_WORKSPACE to place the shopware repository
     required: true
     default: ""
+  allow-insecure-versions:
+    description: This allows installing older versions of shopware with known vulnerabilities (e.g. for testing updates)
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -113,6 +117,14 @@ runs:
         else
           echo "COMPOSER_ROOT_VERSION=${{ inputs.composer-root-version }}" >> "$GITHUB_ENV"
         fi
+
+    - name: Apply composer config changes
+      if: inputs.allow-insecure-versions == 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        jq '.config.audit = { "block-insecure": false }' composer.json > composer.json.new
+        mv composer.json.new composer.json
 
     - name: Remove vendor-bin
       if: inputs.keep-composer-tools == 'false'
