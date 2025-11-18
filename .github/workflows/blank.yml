@@ -71,6 +71,7 @@ jobs:
           shopware-version: '${{ matrix.version }}'
           path: 'sw-test'
           install: 'true'
+          allow-insecure-versions: ${{ matrix.version == 'trunk' && 'false' || 'true' }}
       - name: Show version
         working-directory: sw-test
         run: ./bin/console --version
