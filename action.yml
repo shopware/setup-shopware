@@ -172,7 +172,7 @@ runs:
         working-directory: ${{ inputs.path }}
 
     - uses: actions/setup-node@v4
-      if: inputs.install-storefront || inputs.install-admin
+      if: ${{ inputs.install-storefront == 'true' || inputs.install-admin == 'true' }}
       with:
         node-version: ${{ inputs.node-version }}
 
@@ -184,14 +184,14 @@ runs:
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
-      if: inputs.install-storefront
+      if: ${{ inputs.install-storefront == 'true' }}
       id: storefront-node-cache
       with:
         path: ${{ inputs.path || '.' }}/src/Storefront/Resources/app/storefront/node_modules
         key: storefront-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Storefront/Resources/app/storefront/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.install-storefront && steps.storefront-node-cache.outputs.cache-hit != 'true'
+      if: ${{ inputs.install-storefront == 'true' && steps.storefront-node-cache.outputs.cache-hit != 'true' }}
       working-directory: ${{ inputs.path }}
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
@@ -200,14 +200,14 @@ runs:
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
-      if: inputs.install-admin
+      if: ${{ inputs.install-admin == 'true' }}
       id: admin-node-cache
       with:
         path: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration/node_modules
         key: admin-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/src/Administration/Resources/app/administration/package-lock.json', inputs.path || '.')) }}
 
     - name: Install dependencies (if the cached directory was not found)
-      if: inputs.install-admin && steps.admin-node-cache.outputs.cache-hit != 'true'
+      if: ${{ inputs.install-admin == 'true' && steps.admin-node-cache.outputs.cache-hit != 'true' }}
       env:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       shell: bash
@@ -215,13 +215,13 @@ runs:
       run: npm --prefix src/Administration/Resources/app/administration ci --no-audit --prefer-offline
 
     - name: Prepare Jest environment
-      if: ${{ inputs.install-admin }}
+      if: ${{ inputs.install-admin == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path || '.' }}/src/Administration/Resources/app/administration
       run: npm run unit-setup --if-present
 
     - name: Entity schema
-      if: ${{ inputs.install-admin }}
+      if: ${{ inputs.install-admin == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path || '.' }}
       run: |
@@ -287,35 +287,35 @@ runs:
         echo "APP_URL=http://localhost:8000" >> "$GITHUB_ENV"
 
     - name: Install Shopware
-      if: inputs.install == 'true'
+      if: ${{ inputs.install == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         composer run init:db -- --shop-locale=${{ inputs.install-locale }} --shop-currency=${{ inputs.install-currency }}
 
     - name: Build JS Admin
-      if: inputs.install-admin == 'true' && inputs.skip-js-build != 'true'
+      if: ${{ inputs.install-admin == 'true' && inputs.skip-js-build != 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         composer run build:js:admin
 
     - name: Build JS Storefront
-      if: inputs.install-storefront == 'true' && inputs.skip-js-build != 'true'
+      if: ${{ inputs.install-storefront == 'true' && inputs.skip-js-build != 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         composer run build:js:storefront
 
     - name: Copy assets
-      if: inputs.install-storefront == 'true' && inputs.install-admin == 'true'
+      if: ${{ inputs.install-storefront == 'true' && inputs.install-admin == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
         bin/console assets:install
 
     - name: Assign default Storefront theme to all sales channels
-      if: inputs.install == 'true' && inputs.install-storefront == 'true'
+      if: ${{ inputs.install == 'true' && inputs.install-storefront == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
@@ -326,7 +326,7 @@ runs:
         fi
 
     - name: Start Webserver
-      if: inputs.install == 'true'
+      if: ${{ inputs.install == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       env:
