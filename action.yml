@@ -180,7 +180,7 @@ runs:
       if: inputs.npm-version
       shell: bash
       run: |
-        npm install -g npm@${{ inputs.npm-version }}
+        sudo npm install -g npm@${{ inputs.npm-version }}
 
     - name: Retrieve the cached "node_modules" directory (if present)
       uses: actions/cache@v4
