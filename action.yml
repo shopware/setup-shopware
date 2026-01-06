@@ -102,7 +102,7 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
-        composer config platform.php "${{ inputs.php-fake-version }}"  
+        composer config platform.php "${{ inputs.php-fake-version }}"
 
     - name: Set COMPOSER_ROOT_VERSION
       shell: bash
@@ -142,6 +142,8 @@ runs:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
+        ini: |
+          session.gc_probability=0
 
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin' && !github.event.act
