@@ -142,8 +142,7 @@ runs:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
-        ini: |
-          session.gc_probability=0
+        ini-values: session.gc_probability=0
 
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin' && !github.event.act
