@@ -21,6 +21,7 @@ This GitHub action helps you set up Shopware, PHP, MySQL, Node.js, and other req
 | `shopware-repository`  | GitHub repository to clone Shopware from.                          | `shopware/shopware` | true |
 | `php-version`          | PHP version (compatible with [shivammathur/setup-php]).            | `8.2`           | false    |
 | `php-extensions`       | Comma-separated list of PHP extensions.                            |                 | false    |
+| `php-ini-values`       | PHP ini values to set (e.g. `post_max_size=256M`).                 | `session.gc_probability=0` | false    |
 | `composer-root-version`| Set the COMPOSER_ROOT_VERSION. `.auto` to discover from composer.json | `.auto`       | false    |
 | `install`              | Whether to run the Shopware installer.                             | `false`         | true     |
 | `install-locale`       | Locale for Shopware installation.                                  | `en-GB`         | true     |

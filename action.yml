@@ -29,6 +29,10 @@ inputs:
     description: "PHP extensions to install"
     required: true
     default: "gd, xml, dom, curl, pdo, mysqli, mbstring, pdo_mysql, bcmath, pcov, zip"
+  php-ini-values:
+    description: "PHP ini values to set"
+    required: false
+    default: "session.gc_probability=0"
   php-fake-version:
     description: "Fake the version for composer"
     required: false
@@ -142,7 +146,7 @@ runs:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
-        ini-values: session.gc_probability=0
+        ini-values: ${{ inputs.php-ini-values }}
 
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin' && !github.event.act
