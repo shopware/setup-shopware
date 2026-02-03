@@ -32,6 +32,7 @@ This GitHub action helps you set up Shopware, PHP, MySQL, Node.js, and other req
 | `mysql-version`        | MySQL image to use, or `builtin` for GitHub-hosted MySQL.          | `builtin`       | false    |
 | `node-version`         | Node.js version (e.g. `20.x`).                                    | `20.x`          | false    |
 | `path`                 | Directory in `$GITHUB_WORKSPACE` to clone Shopware into.           |                 | true     |
+| `disable-bundles`      | Comma-separated list of bundles to disable (e.g., `Administration, Storefront, Elasticsearch`). | | false |
 
 ## Example pipeline to run PHPUnit tests
 

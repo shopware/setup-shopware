@@ -89,6 +89,10 @@ inputs:
     description: This allows installing older versions of shopware with known vulnerabilities (e.g. for testing updates)
     required: false
     default: "false"
+  disable-bundles:
+    description: "Comma-separated list of bundles to disable (e.g., Administration, Storefront, Elasticsearch)"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -101,6 +105,24 @@ runs:
         ref: ${{ inputs.shopware-version }}
         path: ${{ inputs.path }}
         token: ${{ inputs.shopware-github-token }}
+
+    - name: Disable bundles
+      if: inputs.disable-bundles != ''
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        IFS=',' read -ra BUNDLES <<< "${{ inputs.disable-bundles }}"
+        for bundle in "${BUNDLES[@]}"; do
+          bundle=$(echo "$bundle" | xargs)
+          echo "::group::Disabling bundle: $bundle"
+          sed -i "/Shopware\\\\$bundle/d" ./config/bundles.php
+          rm -rf "src/$bundle"
+          rm -rf "tests/integration/$bundle"
+          rm -rf "tests/migration/$bundle"
+          rm -rf "tests/unit/$bundle"
+          echo "::endgroup::"
+        done
+
     - name: Fake php version for composer
       if: ${{ inputs.php-fake-version && inputs.php-fake-version != '' }}
       working-directory: ${{ inputs.path }}
