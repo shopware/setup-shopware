@@ -75,3 +75,27 @@ jobs:
       - name: Show version
         working-directory: sw-test
         run: ./bin/console --version
+
+  disable-bundles:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Shopware
+        uses: ./.
+        with:
+          install: 'true'
+          path: 'sw-test'
+          disable-bundles: 'Administration, Storefront, Elasticsearch'
+      - name: Verify bundles are disabled
+        working-directory: sw-test
+        run: |
+          ! grep -q 'Shopware\\Administration' config/bundles.php
+          ! grep -q 'Shopware\\Storefront' config/bundles.php
+          ! grep -q 'Shopware\\Elasticsearch' config/bundles.php
+          [ ! -d "src/Administration" ]
+          [ ! -d "src/Storefront" ]
+          [ ! -d "src/Elasticsearch" ]
+          [ ! -d "tests/integration/Administration" ]
+          [ ! -d "tests/integration/Storefront" ]
+          [ ! -d "tests/integration/Elasticsearch" ]
