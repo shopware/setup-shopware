@@ -32,7 +32,7 @@ inputs:
   php-ini-values:
     description: "PHP ini values to set"
     required: false
-    default: "session.gc_probability=0"
+    default: "session.gc_probability=0,session.save_path=/tmp/php-sessions"
   php-fake-version:
     description: "Fake the version for composer"
     required: false
@@ -169,6 +169,10 @@ runs:
         extensions: ${{ inputs.php-extensions }}
         tools: symfony-cli
         ini-values: ${{ inputs.php-ini-values }}
+
+    - name: Prepare session dir
+      shell: bash
+      run: mkdir -p /tmp/php-sessions
 
     - name: Start Default MySQL
       if: inputs.mysql-version == 'builtin' && !github.event.act
