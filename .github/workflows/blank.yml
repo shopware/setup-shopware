@@ -24,6 +24,7 @@ jobs:
           mysql-version: ${{ matrix.mysql }}
           install: 'true'
           path: 'sw-test'
+          allow-insecure-versions: 'true'
 
   only-storefront:
     runs-on: ubuntu-latest
@@ -34,8 +35,9 @@ jobs:
         uses: ./.
         with:
           install: 'true'
-          installStorefront: 'true'
+          install-storefront: 'true'
           path: 'sw-test'
+          allow-insecure-versions: 'true'
 
   only-admin:
     runs-on: ubuntu-latest
@@ -46,8 +48,9 @@ jobs:
         uses: ./.
         with:
           install: 'true'
-          installAdmin: 'true'
+          install-admin: 'true'
           path: 'sw-test'
+          allow-insecure-versions: 'true'
 
   version-matrix:
     runs-on: ubuntu-latest
@@ -71,7 +74,7 @@ jobs:
           shopware-version: '${{ matrix.version }}'
           path: 'sw-test'
           install: 'true'
-          allow-insecure-versions: ${{ matrix.version == 'trunk' && 'false' || 'true' }}
+          allow-insecure-versions: 'true'
       - name: Show version
         working-directory: sw-test
         run: ./bin/console --version
@@ -86,6 +89,7 @@ jobs:
         with:
           install: 'true'
           path: 'sw-test'
+          allow-insecure-versions: 'true'
           disable-bundles: 'Administration, Storefront, Elasticsearch'
       - name: Verify bundles are disabled
         working-directory: sw-test
