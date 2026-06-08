@@ -170,7 +170,6 @@ runs:
         ini-values: ${{ inputs.php-ini-values }}
 
     - name: Install Symfony CLI
-      if: ${{ inputs.install == 'true' }}
       uses: jaxxstorm/action-install-gh-release@v3.0.0
       with:
         repo: symfony-cli/symfony-cli
