@@ -167,8 +167,15 @@ runs:
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
-        tools: symfony-cli
         ini-values: ${{ inputs.php-ini-values }}
+
+    - name: Install Symfony CLI
+      if: ${{ inputs.install == 'true' }}
+      uses: jaxxstorm/action-install-gh-release@v3.0.0
+      with:
+        repo: symfony-cli/symfony-cli
+        tag: v5.17.1
+        cache: enable
 
     - name: Prepare session dir
       shell: bash
