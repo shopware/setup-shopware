@@ -97,9 +97,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: runs-on/action@v1
+    - uses: runs-on/action@4e5f72399b6b17f2e79c511c1b38a315a64d22dc # ratchet:runs-on/action@v2.2.0
     - name: Clone Shopware
-      uses: actions/checkout@v4
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       with:
         repository: ${{ inputs.shopware-repository || 'shopware/shopware' }}
         ref: ${{ inputs.shopware-version }}
@@ -159,7 +159,7 @@ runs:
       run: rm -rf vendor-bin
 
     - name: Setup PHP
-      uses: shivammathur/setup-php@cf4cade2721270509d5b1c766ab3549210a39a2a # v2.33.0
+      uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # ratchet:shivammathur/setup-php@2.37.2
       env:
         RUNNER: github
         ImageOS: ubuntu
@@ -170,7 +170,7 @@ runs:
         ini-values: ${{ inputs.php-ini-values }}
 
     - name: Install Symfony CLI
-      uses: jaxxstorm/action-install-gh-release@v3.0.0
+      uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # ratchet:jaxxstorm/action-install-gh-release@v3.0.0
       with:
         repo: symfony-cli/symfony-cli
         tag: v5.17.1
@@ -203,12 +203,12 @@ runs:
           -d \
           ${{ inputs.mysql-version }}
 
-    - uses: "ramsey/composer-install@v3"
+    - uses: "ramsey/composer-install@a8d0d959dab41457692a5e2041bd9b757a119e3f" # ratchet:ramsey/composer-install@v3
       with:
         custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
         working-directory: ${{ inputs.path }}
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       if: ${{ inputs.install-storefront == 'true' || inputs.install-admin == 'true' }}
       with:
         node-version: ${{ inputs.node-version }}
@@ -220,7 +220,7 @@ runs:
         npm install -g npm@${{ inputs.npm-version }}
 
     - name: Retrieve the cached "node_modules" directory (if present)
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache@v6
       if: ${{ inputs.install-storefront == 'true' }}
       id: storefront-node-cache
       with:
@@ -236,7 +236,7 @@ runs:
       run: npm --prefix src/Storefront/Resources/app/storefront ci --no-audit --prefer-offline
 
     - name: Retrieve the cached "node_modules" directory (if present)
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache@v6
       if: ${{ inputs.install-admin == 'true' }}
       id: admin-node-cache
       with:
@@ -274,7 +274,7 @@ runs:
 
     - name: Configure MySQL Client
       if: inputs.mysql-version != 'builtin'
-      uses: actions/github-script@v7
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # ratchet:actions/github-script@v9
       with:
         script: |
           const fs = require('fs');
