@@ -203,7 +203,7 @@ runs:
           -d \
           ${{ inputs.mysql-version }}
 
-    - uses: "ramsey/composer-install@a8d0d959dab41457692a5e2041bd9b757a119e3f" # ratchet:ramsey/composer-install@v3
+    - uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # ratchet:ramsey/composer-install@v4
       with:
         custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
         working-directory: ${{ inputs.path }}
