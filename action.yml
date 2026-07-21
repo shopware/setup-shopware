@@ -209,60 +209,12 @@ runs:
         working-directory: ${{ inputs.path }}
 
     # GitHub Actions now issues ghs_ installation tokens with JWT-style segments
-    # (dots + base64url hyphens). Older composer/composer library versions (used by
-    # Shopware plugin:refresh etc.) reject those tokens in BaseIO::loadConfiguration.
-    # Composer 2.10+ removed that validation (composer/composer#12856). Patch it out
-    # of vendored copies so older Shopware pins keep working.
+    # that older composer/composer rejects. Composer 2.10+ removed that validation
+    # (composer/composer#12856); patch vendored copies for older Shopware pins.
     - name: Patch composer github-oauth token validation
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: |
-        base_io="vendor/composer/composer/src/Composer/IO/BaseIO.php"
-        if [[ ! -f "$base_io" ]]; then
-          echo "composer/composer BaseIO.php not found, skipping patch"
-          exit 0
-        fi
-
-        if ! grep -q 'Your github oauth token for' "$base_io"; then
-          echo "composer/composer already accepts modern GitHub tokens, skipping patch"
-          exit 0
-        fi
-
-        echo "Patching $base_io to accept modern GitHub installation tokens (composer/composer#12856)"
-        python3 - "$base_io" <<'PY'
-        import re
-        import sys
-
-        path = sys.argv[1]
-        with open(path, "r", encoding="utf-8") as handle:
-            source = handle.read()
-
-        # Remove the github-oauth character validation block from pre-2.10
-        # composer/composer (comment + if + throw), see composer/composer#12856.
-        pattern = re.compile(
-            r"\n"
-            r"[ \t]*// allowed chars for GH tokens[^\n]*\n"
-            r"(?:[ \t]*//[^\n]*\n)*"
-            r"[ \t]*if \(!Preg::isMatch\([^;]+?\)\) \{\n"
-            r"[ \t]*throw new \\UnexpectedValueException\([^;]+?\);\n"
-            r"[ \t]*\}\n"
-        )
-        patched, count = pattern.subn("\n", source, count=1)
-        if count != 1:
-            raise SystemExit(f"Failed to locate github oauth token validation block in {path}")
-
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write(patched)
-
-        print(f"Patched {path}")
-        PY
-
-        if grep -q 'Your github oauth token for' "$base_io"; then
-          echo "::error::composer BaseIO.php still contains github oauth token validation after patch"
-          exit 1
-        fi
-
-        php -l "$base_io" >/dev/null
+      run: python3 "${{ github.action_path }}/scripts/patch-composer-github-oauth.py"
 
     - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       if: ${{ inputs.install-storefront == 'true' || inputs.install-admin == 'true' }}
