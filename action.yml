@@ -161,9 +161,8 @@ runs:
     - name: Setup PHP
       uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # ratchet:shivammathur/setup-php@2.37.2
       env:
-        RUNNER: github
+        RUNNER_ENVIRONMENT: github-hosted
         ImageOS: ubuntu
-        GITHUB_EMULATION: "true"
       with:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
