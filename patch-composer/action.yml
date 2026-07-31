@@ -1,0 +1,17 @@
+name: "Patch vendored composer"
+description: "Patch a pre-2.10 vendored composer/composer to accept modern GitHub installation tokens"
+
+inputs:
+  path:
+    description: "Directory of the Shopware installation to patch"
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    # Obsolete once no supported Shopware version pins composer/composer < 2.10.
+    - name: Patch composer github-oauth token validation
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: python3 "${{ github.action_path }}/../scripts/patch-composer-github-oauth.py"
