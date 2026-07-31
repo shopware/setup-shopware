@@ -49,4 +49,28 @@ jobs:
                 shopware-repository: shopware/shopware
                 php-version: 8.1
                 install: true
+```
+
+## `patch-composer`
+
+`setup-shopware` already patches the installation it creates. Use this action to patch an **additional** Shopware installation that was set up by other means — typically an older version built with `composer require shopware/core:<version>` for update tests.
+
+Background: GitHub Actions issues `ghs_` installation tokens with JWT-style segments that `composer/composer` below 2.10 rejects in `BaseIO::loadConfiguration`, which makes commands like `bin/console system:install` fail. Composer 2.10+ dropped that validation (composer/composer#12856). Shopware versions that cap `composer/composer` below 2.10 cannot pick up the fix, so their vendored copy needs the same change applied.
+
+The action is a no-op when the vendored composer is 2.10 or newer, or when there is no vendored composer at all.
+
+| Name   | Description                                       | Default | Required |
+|--------|---------------------------------------------------|---------|----------|
+| `path` | Directory of the Shopware installation to patch.  | `.`     | false    |
+
+```yaml
+            - name: Require shopware
+              working-directory: old-shopware
+              run: composer require shopware/core:v6.6.0.0
+
+            - name: Patch vendored composer for modern GitHub tokens
+              uses: shopware/setup-shopware/patch-composer@main
+              with:
+                path: old-shopware
+```
 
