@@ -144,6 +144,20 @@ runs:
           echo "COMPOSER_ROOT_VERSION=${{ inputs.composer-root-version }}" >> "$GITHUB_ENV"
         fi
 
+    # Newer Shopware versions ship the shopware/conflicts composer repository,
+    # older tags only require the package from packagist (or not at all).
+    - name: Ensure shopware/conflicts package
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        jq --indent 4 '
+          .require["shopware/conflicts"] //= "*"
+          | .repositories = ((.repositories // []) as $repos
+              | if any($repos[]; .url == "https://shopware.github.io/conflicts/") then $repos
+                else $repos + [{"type": "composer", "url": "https://shopware.github.io/conflicts/"}] end)
+        ' composer.json > composer.json.new
+        mv composer.json.new composer.json
+
     - name: Apply composer config changes
       if: inputs.allow-insecure-versions == 'true'
       shell: bash
