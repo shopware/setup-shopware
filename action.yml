@@ -212,9 +212,25 @@ runs:
           -d \
           ${{ inputs.mysql-version }}
 
+    - name: Determine Composer cache directory
+      id: composer-cache
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: echo "dir=$(composer config cache-dir)" >> "$GITHUB_OUTPUT"
+
+    # Cached here instead of in ramsey/composer-install: with a custom key it has no restore keys,
+    # so every composer.json change downloaded all packages again instead of only the changed ones.
+    - name: Cache Composer dependencies
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache@v6
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
+        restore-keys: |
+          ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-
+
     - uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # ratchet:ramsey/composer-install@v4
       with:
-        custom-cache-key: ${{ runner.os }}-setup-shopware-composer-${{ inputs.php-version }}-${{ hashFiles('composer.json', 'custom/plugins/**/composer.json') }}
+        ignore-cache: "yes"
         working-directory: ${{ inputs.path }}
 
     # GitHub Actions now issues ghs_ installation tokens with JWT-style segments
