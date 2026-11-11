@@ -171,6 +171,12 @@ runs:
       working-directory: ${{ inputs.path }}
       run: rm -rf vendor-bin
 
+    # CI only needs package indexes; stale optional translations can break mirror updates.
+    - name: Disable APT translation downloads
+      if: runner.os == 'Linux'
+      shell: bash
+      run: echo 'Acquire::Languages "none";' | sudo tee /etc/apt/apt.conf.d/99-shopware-no-translations
+
     - name: Setup PHP
       uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # ratchet:shivammathur/setup-php@2.37.2
       with:
