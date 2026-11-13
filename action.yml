@@ -165,6 +165,17 @@ runs:
         jq '.config.audit = { "block-insecure": false }' composer.json > composer.json.new
         mv composer.json.new composer.json
 
+    # Legacy dev-tools versions require maltyxx/images-generator, whose repository was deleted.
+    # The maintained fork replaces that package and preserves its PHP namespace.
+    - name: Restore legacy image generator dependency
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        jq 'if .["require-dev"]["shopware/dev-tools"] then
+              .["require-dev"]["shopwarelabs/images-generator"] //= "^1.0.1"
+            else . end' composer.json > composer.json.new
+        mv composer.json.new composer.json
+
     - name: Remove vendor-bin
       if: inputs.keep-composer-tools == 'false'
       shell: bash

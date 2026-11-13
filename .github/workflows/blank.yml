@@ -65,6 +65,9 @@ jobs:
           - 'v6.6.4.0'
           - 'v6.6.8.2'
           - 'v6.6.10.3'
+        include:
+          - version: 'v6.5.0.0'
+            php: '8.1'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -72,12 +75,17 @@ jobs:
         uses: ./.
         with:
           shopware-version: '${{ matrix.version }}'
+          php-version: ${{ matrix.php || '8.3' }}
           path: 'sw-test'
           install: 'true'
           allow-insecure-versions: 'true'
       - name: Show version
         working-directory: sw-test
         run: ./bin/console --version
+      - name: Verify legacy image generator replacement
+        if: matrix.version == 'v6.5.0.0'
+        working-directory: sw-test
+        run: composer show shopwarelabs/images-generator --format=json | jq -e '.replaces["maltyxx/images-generator"] != null'
 
   disable-bundles:
     runs-on: ubuntu-latest
