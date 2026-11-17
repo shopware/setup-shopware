@@ -103,3 +103,17 @@ jobs:
           [ ! -d "tests/integration/Administration" ]
           [ ! -d "tests/integration/Storefront" ]
           [ ! -d "tests/integration/Elasticsearch" ]
+
+  php-version-not-preinstalled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Shopware
+        uses: ./.
+        with:
+          php-version: '8.2'
+          path: 'sw-test'
+          allow-insecure-versions: 'true'
+      - name: Show PHP version
+        run: php -v
