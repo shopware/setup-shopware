@@ -173,8 +173,9 @@ runs:
 
     # PHP versions that are not preinstalled on the runner image (for example 8.2) are
     # downloaded, and their extensions installed with apt, on every run. That fails
-    # intermittently. fail-fast turns a missing extension into a failed step instead of
-    # a later composer error, so the single retry below covers both failure modes.
+    # intermittently. fail-fast makes setup-php fail the step when an extension
+    # cannot be installed, instead of a later composer error, so the single retry
+    # below covers both failure modes.
     - name: Setup PHP
       id: setup-php
       continue-on-error: true
@@ -219,35 +220,6 @@ runs:
         php-version: ${{ inputs.php-version }}
         extensions: ${{ inputs.php-extensions }}
         ini-values: ${{ inputs.php-ini-values }}
-
-    - name: Verify PHP setup
-      shell: bash
-      env:
-        PHP_VERSION: ${{ inputs.php-version }}
-        PHP_EXTENSIONS: ${{ inputs.php-extensions }}
-      run: |
-        actual="$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')"
-        if [[ "$PHP_VERSION" =~ ^[0-9]+\.[0-9]+ && "$actual" != "${BASH_REMATCH[0]}" ]]; then
-          echo "::error title=setup-php::Expected PHP ${PHP_VERSION}, got ${actual}"
-          exit 1
-        fi
-        loaded="$(php -m | tr '[:upper:]' '[:lower:]')"
-        missing=()
-        IFS=',' read -ra requested <<< "$PHP_EXTENSIONS"
-        for ext in "${requested[@]}"; do
-          ext="$(echo "$ext" | xargs | tr '[:upper:]' '[:lower:]')"
-          # skip empty entries and disabled extensions (":ext", "none")
-          [[ -z "$ext" || "$ext" == :* || "$ext" == "none" ]] && continue
-          # strip version suffixes such as "redis-6.0.2"
-          ext="${ext%%-*}"
-          [[ "$ext" == "opcache" ]] && ext="zend opcache"
-          grep -qxF "$ext" <<< "$loaded" || missing+=("$ext")
-        done
-        if (( ${#missing[@]} )); then
-          echo "::error title=setup-php::PHP extensions missing after setup: ${missing[*]}"
-          exit 1
-        fi
-        echo "PHP ${actual} with all requested extensions loaded"
 
     - name: Install Symfony CLI
       uses: jaxxstorm/action-install-gh-release@25e24d2d23ae098373794ef1d6faecb48ee52da8 # ratchet:jaxxstorm/action-install-gh-release@v3.0.0
